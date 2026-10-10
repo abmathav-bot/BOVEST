@@ -60,9 +60,21 @@ export default function SignUp() {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
-    setLoading(false);
-    setStep(2);
+    try {
+      await import('../utils/api').then(m =>
+        m.api.auth.signup({
+          full_name: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          password: form.password,
+        })
+      );
+      setLoading(false);
+      setStep(2);
+    } catch (err) {
+      setLoading(false);
+      setErrors({ fullName: err.message || 'Signup failed. Please try again.' });
+    }
   };
 
   const strengthScore = (() => {

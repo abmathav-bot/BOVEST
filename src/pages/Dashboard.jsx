@@ -2,64 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
+import { api } from '../utils/api';
 import {
   TrendUpIcon, InvestIcon, DocumentIcon, HeartIcon,
-  MilkIcon, CalendarIcon, NotificationIcon, ArrowUpRight, ChevronRight
+  MilkIcon, CalendarIcon, NotificationIcon, ArrowUpRight, ChevronRight, CowOutlineIcon
 } from '../components/Icons';
-
-/* ─── Farm Alerts (important — pinned at top) ─── */
-const FARM_ALERTS = [
-  {
-    id: 'fa1',
-    title: '🚨 Veterinary Visit Scheduled',
-    message: 'Dr. Ramesh will visit the farm on 24 Sep 2026 for a routine health check of all cows.',
-    time: 'Just now',
-    urgent: true,
-  },
-  {
-    id: 'fa2',
-    title: '🌧️ Weather Advisory',
-    message: 'Heavy rainfall expected this week. Cows have been moved to covered sheds. No impact on yield expected.',
-    time: '1 hr ago',
-    urgent: false,
-  },
-];
-
-/* ─── Notification data ─── */
-const NOTIFICATIONS = [
-  {
-    id: 1,
-    type: 'profit',
-    title: 'Daily Profit Credited',
-    message: '₹35 has been credited to your wallet for today\'s milk yield.',
-    time: '10 mins ago',
-    unread: true,
-  },
-  {
-    id: 2,
-    type: 'health',
-    title: 'Health Check Reminder',
-    message: 'Scheduled veterinary check-up for Gauri (BOV-101) is due tomorrow.',
-    time: '2 hrs ago',
-    unread: true,
-  },
-  {
-    id: 3,
-    type: 'update',
-    title: 'Market Rate Updated',
-    message: 'Milk rate updated to ₹42/L for Sep 2026. Your returns will reflect this.',
-    time: 'Yesterday',
-    unread: false,
-  },
-  {
-    id: 4,
-    type: 'investment',
-    title: 'Lock-in Milestone',
-    message: 'Your Scheme A investment has completed 2+ years. 3 more years to maturity.',
-    time: '2 days ago',
-    unread: false,
-  },
-];
 
 /* ─── Notification type icon/color ─── */
 const notifMeta = {
@@ -67,6 +14,7 @@ const notifMeta = {
   health:     { bg: '#fce4ec', color: '#c62828' },
   update:     { bg: '#e3f2fd', color: '#1565c0' },
   investment: { bg: '#f3e5f5', color: '#7b1fa2' },
+  system:     { bg: '#fff3e0', color: '#e65100' },
 };
 
 const NotifIcon = ({ type }) => {
@@ -93,33 +41,6 @@ const NotifIcon = ({ type }) => {
   );
 };
 
-/* ─── Full day report data ─── */
-const fullReport = {
-  1: {
-    milkMorning: '4.2 L', milkEvening: '3.8 L', totalMilk: '8.0 L',
-    rate: '₹40/L', grossRevenue: '₹320', cowMaintenance: '₹160',
-    profitPool: '₹160', investorShare: '25%', netProfit: '40.00',
-    cowHealth: 'Good', temperature: '38.4°C', feedConsumed: '18 kg',
-    waterConsumed: '62 L', veterinarian: 'No visit',
-    notes: 'Normal yield day. Cow was active. No health issues observed.',
-  },
-  2: {
-    milkMorning: '4.1 L', milkEvening: '3.9 L', totalMilk: '8.0 L',
-    rate: '₹40/L', grossRevenue: '₹320', cowMaintenance: '₹160',
-    profitPool: '₹160', investorShare: '25%', netProfit: '40.00',
-    cowHealth: 'Good', temperature: '38.2°C', feedConsumed: '17.5 kg',
-    waterConsumed: '60 L', veterinarian: 'No visit',
-    notes: 'Consistent yield. Evening milking slightly higher.',
-  },
-  3: {
-    milkMorning: '3.8 L', milkEvening: '3.7 L', totalMilk: '7.5 L',
-    rate: '₹40/L', grossRevenue: '₹300', cowMaintenance: '₹150',
-    profitPool: '₹150', investorShare: '25%', netProfit: '37.50',
-    cowHealth: 'Good', temperature: '38.6°C', feedConsumed: '17 kg',
-    waterConsumed: '58 L', veterinarian: 'No visit',
-    notes: 'Slightly lower yield than average. Cow resting well post feeding.',
-  },
-};
 
 /* ═══════════════════════════════════════════
    NOTIFICATION PANEL COMPONENT
@@ -242,6 +163,12 @@ const NotificationPanel = ({ open, onClose, notifications, onMarkAll, farmAlerts
             </div>
           );
         })}
+
+        {farmAlerts.length === 0 && notifications.length === 0 && (
+          <p style={{ padding: '32px 16px', textAlign: 'center', color: '#8a9a93', fontSize: '13px' }}>
+            No notifications yet
+          </p>
+        )}
       </div>
     </div>
   </>
@@ -252,7 +179,7 @@ const NotificationPanel = ({ open, onClose, notifications, onMarkAll, farmAlerts
 ═══════════════════════════════════════════ */
 const ActivityCard = ({ activity }) => {
   const [expanded, setExpanded] = useState(false);
-  const report = fullReport[activity.id];
+  const report = activity.full_report || {};
 
   return (
     <div
@@ -363,15 +290,15 @@ const ActivityCard = ({ activity }) => {
             <div className="exp-row">
               <div className="exp-stat">
                 <span className="exp-stat-label">Morning</span>
-                <span className="exp-stat-val">{report.milkMorning}</span>
+                <span className="exp-stat-val">{report.milk_morning}</span>
               </div>
               <div className="exp-stat">
                 <span className="exp-stat-label">Evening</span>
-                <span className="exp-stat-val">{report.milkEvening}</span>
+                <span className="exp-stat-val">{report.milk_evening}</span>
               </div>
               <div className="exp-stat highlight">
                 <span className="exp-stat-label">Total</span>
-                <span className="exp-stat-val green">{report.totalMilk}</span>
+                <span className="exp-stat-val green">{report.total_milk}</span>
               </div>
             </div>
           </div>
@@ -384,20 +311,20 @@ const ActivityCard = ({ activity }) => {
                 <span>Rate per Litre</span><span>{report.rate}</span>
               </div>
               <div className="exp-earn-row">
-                <span>Gross Revenue (Total)</span><span>{report.grossRevenue}</span>
+                <span>Gross Revenue (Total)</span><span>{report.gross_revenue}</span>
               </div>
               <div className="exp-earn-row" style={{ color: '#8ba899' }}>
-                <span>Cow Maintenance (50%)</span><span>-{report.cowMaintenance}</span>
+                <span>Cow Maintenance (50%)</span><span>-{report.cow_maintenance}</span>
               </div>
               <div className="exp-earn-row">
-                <span>Profit Pool (50%)</span><span>{report.profitPool}</span>
+                <span>Profit Pool (50%)</span><span>{report.profit_pool}</span>
               </div>
               <div className="exp-earn-row">
-                <span>Investor Share</span><span>{report.investorShare}</span>
+                <span>Investor Share</span><span>{report.investor_share}</span>
               </div>
               <div className="exp-earn-row net">
                 <span>Net Profit</span>
-                <span className="net-val">+₹{report.netProfit}</span>
+                <span className="net-val">+₹{report.net_profit}</span>
               </div>
             </div>
           </div>
@@ -405,20 +332,6 @@ const ActivityCard = ({ activity }) => {
           {/* Cow health & care */}
           <div className="exp-group">
             <p className="exp-group-label">Cow Health &amp; Care</p>
-            <div className="exp-row">
-              <div className="exp-stat">
-                <span className="exp-stat-label">Body Temp</span>
-                <span className="exp-stat-val">{report.temperature}</span>
-              </div>
-              <div className="exp-stat">
-                <span className="exp-stat-label">Feed</span>
-                <span className="exp-stat-val">{report.feedConsumed}</span>
-              </div>
-              <div className="exp-stat">
-                <span className="exp-stat-label">Water</span>
-                <span className="exp-stat-val">{report.waterConsumed}</span>
-              </div>
-            </div>
             <div className="exp-vet-row">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7a9a88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -462,20 +375,65 @@ const Dashboard = () => {
   const { user } = useAppContext();
   const navigate = useNavigate();
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState(NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
+  const [farmAlerts, setFarmAlerts] = useState([]);
+  const [portfolio, setPortfolio] = useState(null);
+  const [activities, setActivities] = useState([]);
   const [visible, setVisible] = useState(false);
 
-  const unreadCount = notifications.filter(n => n.unread).length;
-  const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
-
-  const animatedPortfolio = useCountUp(visible ? user.portfolioValue : 0, 1400);
-  const animatedToday = useCountUp(visible ? user.todayReturn : 0, 1000);
-  const animatedMonth = useCountUp(visible ? user.monthReturn : 0, 1200);
-
+  // Keep notifications fresh while the app is open
   React.useEffect(() => {
+    const load = () => {
+      api.notifications.list().then(d => setNotifications(d.notifications || [])).catch(() => {});
+      api.notifications.farmAlerts().then(d => setFarmAlerts(d.farm_alerts || [])).catch(() => {});
+    };
+    const timer = setInterval(load, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // ── Fetch live data on mount ──────────────────────────────────────────────
+  React.useEffect(() => {
+    Promise.all([
+      api.notifications.list()
+        .then(d => setNotifications(d.notifications || []))
+        .catch(() => setNotifications([])),
+
+      api.notifications.farmAlerts()
+        .then(d => setFarmAlerts(d.farm_alerts || []))
+        .catch(() => setFarmAlerts([])),
+
+      api.reports.portfolio()
+        .then(d => setPortfolio(d))
+        .catch(() => {}),
+
+      api.reports.daily()
+        .then(d => setActivities(d.activities || []))
+        .catch(() => {}),
+    ]);
     const t = setTimeout(() => setVisible(true), 120);
     return () => clearTimeout(t);
   }, []);
+
+  const unreadCount = notifications.filter(n => n.unread || !n.is_read).length;
+  const markAllRead = () => {
+    api.notifications.markRead([]).catch(() => {});
+    setNotifications(prev => prev.map(n => ({ ...n, unread: false, is_read: true })));
+  };
+
+  const totalProfit   = portfolio?.total_earned ?? 0;
+  const growthPercent = portfolio?.growth_percent ?? 0;
+  const totalCows     = portfolio?.total_cows ?? user?.portfolio?.total_cows ?? 0;
+  const sinceLabel    = portfolio?.since
+    ? new Date(portfolio.since).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
+    : null;
+  const todayReturn   = portfolio?.today_return    ?? user?.portfolio?.today_return    ?? 0;
+  const monthReturn   = portfolio?.month_return    ?? user?.portfolio?.month_return    ?? 0;
+
+  const animatedPortfolio = useCountUp(visible ? totalProfit : 0, 1400);
+  const animatedToday     = useCountUp(visible ? todayReturn    : 0, 1000);
+  const animatedMonth     = useCountUp(visible ? monthReturn    : 0, 1200);
+
+
 
   return (
     <div className="dashboard-container">
@@ -486,14 +444,14 @@ const Dashboard = () => {
         onClose={() => setNotifOpen(false)}
         notifications={notifications}
         onMarkAll={markAllRead}
-        farmAlerts={FARM_ALERTS}
+        farmAlerts={farmAlerts}
       />
 
       {/* ── Top Bar ── */}
       <div className="dash-topbar dash-anim-0">
         <div className="dash-greeting">
           <p className="dash-hello">Welcome</p>
-          <h2 className="dash-name">{user.name}</h2>
+          <h2 className="dash-name">{user?.name || '...'}</h2>
         </div>
         <button
           className={`notif-btn ${notifOpen ? 'active' : ''}`}
@@ -523,7 +481,7 @@ const Dashboard = () => {
           pointerEvents: 'none',
         }} />
 
-        <div className="portfolio-label">TOTAL PORTFOLIO VALUE</div>
+        <div className="portfolio-label">TOTAL PROFIT VALUE</div>
         <div className="portfolio-amount">
           ₹{animatedPortfolio.toLocaleString('en-IN')}
         </div>
@@ -531,11 +489,11 @@ const Dashboard = () => {
         <div className="portfolio-footer">
           <div className="portfolio-meta">
             <CalendarIcon size={14} color="rgba(255,255,255,0.6)" />
-            <span>Since Jan 2024</span>
+            <span>{sinceLabel ? `Since ${sinceLabel}` : 'Not started yet'}</span>
           </div>
           <div className="growth">
             <TrendUpIcon size={16} color="#2ee59d" />
-            +{user.growthPercentage}%
+            +{growthPercent}%
           </div>
         </div>
 
@@ -552,7 +510,7 @@ const Dashboard = () => {
           <div className="mini-divider" />
           <div className="mini-stat">
             <span className="mini-label">Cows</span>
-            <span className="mini-val">{user.investments.reduce((s, i) => s + (i.cows || 0), 0)}</span>
+            <span className="mini-val">{totalCows}</span>
           </div>
         </div>
       </div>
@@ -564,16 +522,16 @@ const Dashboard = () => {
             <TrendUpIcon size={20} color="var(--bovest-green-dark)" />
           </div>
           <h4>Today's Return</h4>
-          <h2 className="stat-value" style={{ color: '#287b45' }}>₹{user.todayReturn}</h2>
-          <p className="stat-sub">+2.3% vs yesterday</p>
+          <h2 className="stat-value" style={{ color: '#287b45' }}>₹{animatedToday.toLocaleString('en-IN')}</h2>
+          <p className="stat-sub">{todayReturn > 0 ? 'Earned today' : 'No activity today'}</p>
         </div>
         <div className={`card stat-card dash-anim-3 ${visible ? 'dash-visible' : ''}`}>
           <div className="stat-icon-wrap navy" style={{ background: 'linear-gradient(135deg,#e3f0f8,#b3d4e8)' }}>
             <CalendarIcon size={20} color="var(--bovest-navy)" />
           </div>
           <h4>Monthly Return</h4>
-          <h2 className="stat-value">₹{user.monthReturn}</h2>
-          <p className="stat-sub">Sep 2026</p>
+          <h2 className="stat-value">₹{animatedMonth.toLocaleString('en-IN')}</h2>
+          <p className="stat-sub">{new Date().toLocaleString('en-IN', { month: 'short', year: 'numeric' })}</p>
         </div>
       </div>
 
@@ -598,7 +556,7 @@ const Dashboard = () => {
         </div>
         <div
           className={`quick-btn dash-anim-6 ${visible ? 'dash-visible' : ''}`}
-          onClick={() => navigate('/accept-terms')}
+          onClick={() => navigate('/agreement')}
           role="button" tabIndex={0}
         >
           <div className="quick-icon">
@@ -611,95 +569,104 @@ const Dashboard = () => {
 
       {/* ── Investment Summary ── */}
       <h3 className={`section-title dash-anim-7 ${visible ? 'dash-visible' : ''}`}>My Investments</h3>
-      <div
-        className={`dash-anim-8 ${visible ? 'dash-visible' : ''}`}
-        style={{
-          background: 'linear-gradient(135deg, #17344b 0%, #1a4163 60%, #0f2d40 100%)',
-          borderRadius: '24px',
-          padding: '22px 20px 20px',
-          marginBottom: '28px',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: '0 12px 36px rgba(13,38,59,0.25)',
-        }}
-      >
-        {/* Decorative glow orb */}
-        <div style={{
-          position: 'absolute', top: '-30px', right: '-30px',
-          width: '130px', height: '130px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(46,229,157,0.12), transparent 70%)',
-          pointerEvents: 'none',
-        }} />
 
-        {/* Header row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', position: 'relative' }}>
-          <div>
-            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Active Scheme</p>
-            <p style={{ fontSize: '17px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Scheme A — Milk-Based</p>
-          </div>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            background: 'rgba(46,229,157,0.15)',
-            border: '1px solid rgba(46,229,157,0.3)',
-            borderRadius: '20px',
-            padding: '5px 12px',
-          }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2ee59d', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#2ee59d' }}>Active</span>
-          </div>
-        </div>
+      {(user?.investments?.length > 0 || user?.portfolio?.total_invested > 0) ? (() => {
+        const inv = user?.investments?.[0];
+        const totalInvested = inv?.amount || user?.portfolio?.total_invested || 0;
+        const schemeName = inv ? 'Scheme A — Milk-Based' : 'Active Scheme';
+        const startDate = inv?.start_date || inv?.startDate;
+        const activeYears = startDate
+          ? ((Date.now() - new Date(startDate)) / (1000 * 60 * 60 * 24 * 365)).toFixed(1)
+          : '—';
+        const lockYears = 5;
+        const lockPct = startDate ? Math.min(100, Math.round((parseFloat(activeYears) / lockYears) * 100)) : 0;
 
-        {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '18px', position: 'relative' }}>
-          {[
-            { label: 'Invested', value: `₹${user.investments[0]?.amount?.toLocaleString('en-IN') || '—'}`, accent: '#2ee59d' },
-            { label: 'Active Since', value: '2.2 yrs', accent: '#60b4ff' },
-            { label: 'Lock-in', value: '5 Years', accent: '#f9a94b' },
-          ].map((item) => (
-            <div key={item.label} style={{
-              background: 'rgba(255,255,255,0.07)',
-              borderRadius: '16px',
-              padding: '12px 10px',
-              textAlign: 'center',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}>
-              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>{item.label}</p>
-              <p style={{ fontSize: '15px', fontWeight: 800, color: item.accent, letterSpacing: '-0.02em' }}>{item.value}</p>
+        return (
+          <div
+            className={`dash-anim-8 ${visible ? 'dash-visible' : ''}`}
+            style={{
+              background: 'linear-gradient(135deg, #17344b 0%, #1a4163 60%, #0f2d40 100%)',
+              borderRadius: '24px', padding: '22px 20px 20px', marginBottom: '28px',
+              position: 'relative', overflow: 'hidden', boxShadow: '0 12px 36px rgba(13,38,59,0.25)',
+            }}
+          >
+            <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '130px', height: '130px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(46,229,157,0.12), transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', position: 'relative' }}>
+              <div>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Active Scheme</p>
+                <p style={{ fontSize: '17px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{schemeName}</p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(46,229,157,0.15)', border: '1px solid rgba(46,229,157,0.3)', borderRadius: '20px', padding: '5px 12px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2ee59d', display: 'inline-block', animation: 'livePulse 2s ease-in-out infinite' }} />
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#2ee59d' }}>Active</span>
+              </div>
             </div>
-          ))}
-        </div>
 
-        {/* Lock-in progress bar */}
-        <div style={{ position: 'relative' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Lock-in Progress</span>
-            <span style={{ fontSize: '11px', color: '#f9a94b', fontWeight: 700 }}>2.2 / 5 Years · 44%</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '18px', position: 'relative' }}>
+              {[
+                { label: 'Invested', value: `₹${Number(totalInvested).toLocaleString('en-IN')}`, accent: '#2ee59d' },
+                { label: 'Active Since', value: `${activeYears} yrs`, accent: '#60b4ff' },
+                { label: 'Lock-in', value: `${lockYears} Years`, accent: '#f9a94b' },
+              ].map((item) => (
+                <div key={item.label} style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '16px', padding: '12px 10px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>{item.label}</p>
+                  <p style={{ fontSize: '15px', fontWeight: 800, color: item.accent, letterSpacing: '-0.02em' }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>Lock-in Progress</span>
+                <span style={{ fontSize: '11px', color: '#f9a94b', fontWeight: 700 }}>{activeYears} / {lockYears} Years · {lockPct}%</span>
+              </div>
+              <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '9px', overflow: 'hidden' }}>
+                <div style={{ width: `${lockPct}%`, height: '100%', background: 'linear-gradient(90deg, #f9a94b, #f97316)', borderRadius: '9px', boxShadow: '0 0 10px rgba(249,169,75,0.4)' }} />
+              </div>
+            </div>
           </div>
-          <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '9px', overflow: 'hidden' }}>
-            <div style={{
-              width: '44%', height: '100%',
-              background: 'linear-gradient(90deg, #f9a94b, #f97316)',
-              borderRadius: '9px',
-              boxShadow: '0 0 10px rgba(249,169,75,0.4)',
-            }} />
-          </div>
+        );
+      })() : (
+        <div
+          className={`dash-anim-8 ${visible ? 'dash-visible' : ''}`}
+          onClick={() => navigate('/invest')}
+          style={{
+            background: 'linear-gradient(135deg, #17344b 0%, #1a4163 60%, #0f2d40 100%)',
+            borderRadius: '24px', padding: '32px 20px', marginBottom: '28px',
+            textAlign: 'center', cursor: 'pointer', boxShadow: '0 12px 36px rgba(13,38,59,0.25)',
+          }}
+        >
+          <div style={{ marginBottom: 12 }}><CowOutlineIcon size={36} color="#2ee59d" /></div>
+          <p style={{ fontSize: '16px', fontWeight: 800, color: '#fff', marginBottom: 6 }}>Start Your Investment</p>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>
+            Invest in dairy cows and earn monthly milk profits.
+          </p>
+          <span style={{ background: '#2ee59d', color: '#0d263b', fontWeight: 700, fontSize: '13px', padding: '10px 24px', borderRadius: '20px' }}>
+            Invest Now →
+          </span>
         </div>
-      </div>
+      )}
 
       {/* ── Recent Activity ── */}
       <h3 className={`section-title dash-anim-9 ${visible ? 'dash-visible' : ''}`}>
         Recent Activity
         <span className="activity-hint">Tap to expand</span>
       </h3>
-      {user.recentActivities.map((activity, idx) => (
-        <div
-          key={activity.id}
-          className={`dash-anim-stagger ${visible ? 'dash-visible' : ''}`}
-          style={{ '--stagger-delay': `${0.55 + idx * 0.08}s` }}
-        >
-          <ActivityCard activity={activity} />
-        </div>
-      ))}
+      {activities.length > 0 ? (
+        activities.map((activity, idx) => (
+          <div
+            key={activity.id}
+            className={`dash-anim-stagger ${visible ? 'dash-visible' : ''}`}
+            style={{ '--stagger-delay': `${0.55 + idx * 0.08}s` }}
+          >
+            <ActivityCard activity={activity} />
+          </div>
+        ))
+      ) : (
+        <p style={{ textAlign: 'center', color: '#9aaba5', padding: '20px 0', fontSize: '13px' }}>
+          No recent activity found.
+        </p>
+      )}
 
     </div>
   );

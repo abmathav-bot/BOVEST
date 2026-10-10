@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+import { api } from '../utils/api';
 
 const ArrowLeft = ({ size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -11,29 +12,52 @@ const ArrowLeft = ({ size = 22 }) => (
 const fields = [
   { key: 'bankName', label: 'Bank Name', placeholder: 'e.g. HDFC Bank, SBI', type: 'text' },
   { key: 'accountName', label: 'Account Holder Name', placeholder: 'As per bank records', type: 'text' },
-  { key: 'accountNumber', label: 'Account Number', placeholder: '••••••••••••', type: 'password' },
+  { key: 'accountNumber', label: 'Account Number', placeholder: '••••••••••••', type: 'text', secret: true, inputMode: 'numeric' },
   { key: 'ifscCode', label: 'IFSC Code', placeholder: 'e.g. HDFC0001234', type: 'text', upper: true },
 ];
 
 const BankDetails = () => {
   const navigate = useNavigate();
-  const { user, updateUser } = useAppContext();
+  const { updateUser } = useAppContext();
 
-  const [form, setForm] = useState({
-    bankName: user.bankDetails?.bankName || '',
-    accountName: user.bankDetails?.accountName || '',
-    accountNumber: user.bankDetails?.accountNumber || '',
-    ifscCode: user.bankDetails?.ifscCode || '',
-  });
+  const [form, setForm] = useState({ bankName: '', accountName: '', accountNumber: '', ifscCode: '' });
+  const [maskedNumber, setMaskedNumber] = useState('');
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  // Load what is already saved on the server (the account number comes back masked)
+  useEffect(() => {
+    api.user.getBankDetails()
+      .then(({ bank_details: bd }) => {
+        if (!bd) return;
+        setMaskedNumber(bd.account_number_masked || '');
+        setForm(f => ({ ...f, bankName: bd.bank_name || '', accountName: bd.account_name || '', ifscCode: bd.ifsc_code || '' }));
+      })
+      .catch(() => {});
+  }, []);
 
   const handleChange = (key, val, upper) => setForm(f => ({ ...f, [key]: upper ? val.toUpperCase() : val }));
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    updateUser({ bankDetails: form });
-    setSaved(true);
-    setTimeout(() => navigate('/profile'), 1500);
+    setSaving(true);
+    setError('');
+    try {
+      await api.user.saveBankDetails({
+        bank_name: form.bankName,
+        account_name: form.accountName,
+        account_number: form.accountNumber || null,
+        ifsc_code: form.ifscCode,
+      });
+      updateUser({ bankDetails: { bankName: form.bankName, accountName: form.accountName, ifscCode: form.ifscCode } });
+      setSaved(true);
+      setTimeout(() => navigate('/profile'), 1500);
+    } catch (err) {
+      setError(err.message || 'Could not save bank details. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -79,11 +103,14 @@ const BankDetails = () => {
                 <p style={{ fontSize: '11px', color: '#aab5be', marginBottom: '6px' }}>{f.label}</p>
                 <input
                   type={f.type}
+                  name={`bovest-bank-${f.key}`}
+                  autoComplete="off"
+                  inputMode={f.inputMode}
                   value={form[f.key]}
                   onChange={e => handleChange(f.key, e.target.value, f.upper)}
-                  placeholder={f.placeholder}
-                  required
-                  style={{ width: '100%', border: 'none', outline: 'none', fontSize: '15px', fontWeight: 600, color: '#0d263b', background: 'transparent', padding: 0 }}
+                  placeholder={f.key === 'accountNumber' && maskedNumber ? `${maskedNumber} (leave blank to keep)` : f.placeholder}
+                  required={!(f.key === 'accountNumber' && maskedNumber)}
+                  style={{ width: '100%', border: 'none', outline: 'none', fontSize: '15px', fontWeight: 600, color: '#0d263b', background: 'transparent', padding: 0, WebkitTextSecurity: f.secret ? 'disc' : 'none' }}
                 />
               </div>
             ))}
@@ -97,14 +124,18 @@ const BankDetails = () => {
             <p style={{ fontSize: '12px', color: '#aab5be' }}>Your bank details are encrypted and stored securely.</p>
           </div>
 
+          {error && (
+            <div style={{ background: '#fdecea', color: '#c62828', borderRadius: '14px', padding: '14px', textAlign: 'center', fontWeight: 600, fontSize: '14px', marginBottom: '16px' }}>{error}</div>
+          )}
+
           {saved && (
             <div style={{ background: '#e8f5e9', color: '#287b45', borderRadius: '14px', padding: '14px', textAlign: 'center', fontWeight: 700, fontSize: '14px', marginBottom: '16px' }}>
               ✓ Bank details saved successfully!
             </div>
           )}
 
-          <button type="submit" style={{ width: '100%', padding: '16px', borderRadius: '16px', border: 'none', background: 'linear-gradient(135deg, #1565c0, #42a5f5)', color: '#fff', fontWeight: 700, fontSize: '16px', boxShadow: '0 6px 20px rgba(21,101,192,0.3)', cursor: 'pointer' }}>
-            Save Bank Details
+          <button type="submit" disabled={saving} style={{ opacity: saving ? 0.6 : 1, width: '100%', padding: '16px', borderRadius: '16px', border: 'none', background: 'linear-gradient(135deg, #1565c0, #42a5f5)', color: '#fff', fontWeight: 700, fontSize: '16px', boxShadow: '0 6px 20px rgba(21,101,192,0.3)', cursor: 'pointer' }}>
+            {saving ? 'Saving…' : 'Save Bank Details'}
           </button>
         </form>
       </div>

@@ -1,0 +1,442 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOVEST — DESIGN LAYER
+   Loaded after index.css. Visual refinement only: colours, depth, typography,
+   motion and states. No layout, content or behaviour is changed here.
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Palette & tokens ──────────────────────────────────────────────────── */
+:root {
+  /* Brand */
+  --bovest-navy:        #0a2036;
+  --bovest-navy-2:      #14395a;
+  --bovest-green:       #4fb857;
+  --bovest-green-dark:  #1f8a4c;
+  --bovest-mist:        #e6f4e4;
+  --bovest-cream:       #f4f9f2;
+  --bovest-ink:         #11293f;
+  --bovest-surface:     #ffffff;
+  --bovest-border:      #dcebd8;
+
+  /* New accents */
+  --bv-emerald:         #1f9d57;
+  --bv-lime:            #8bd85f;
+  --bv-mint:            #2ee59d;
+  --bv-gold:            #f3b94d;
+  --bv-teal:            #1c6b73;
+  --bv-muted:           #6d8579;
+  --bv-line:            rgba(10, 32, 54, .06);
+
+  --bv-gradient-brand:  linear-gradient(135deg, #1f8a4c 0%, #4fb857 55%, #8bd85f 100%);
+  --bv-gradient-deep:   linear-gradient(145deg, #081a2d 0%, #0f3150 52%, #17566a 100%);
+
+  /* Shapes & depth (navy-tinted, softer) */
+  --radius-sm:  12px;
+  --radius-md:  18px;
+  --radius-lg:  24px;
+  --radius-xl:  32px;
+
+  --shadow-sm:  0 1px 2px rgba(10,32,54,.04), 0 4px 14px rgba(10,32,54,.06);
+  --shadow-md:  0 2px 4px rgba(10,32,54,.04), 0 10px 28px rgba(10,32,54,.10);
+  --shadow-lg:  0 4px 8px rgba(10,32,54,.05), 0 20px 44px rgba(10,32,54,.14);
+  --shadow-green: 0 10px 26px rgba(31,157,87,.30);
+
+  --transition: all .25s cubic-bezier(.22,.8,.3,1);
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  letter-spacing: -.005em;
+  background: var(--bovest-cream);
+}
+
+::selection { background: rgba(79,184,87,.28); color: var(--bovest-navy); }
+
+:focus-visible {
+  outline: 2px solid var(--bv-emerald);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+button { transition: transform .15s ease, box-shadow .25s ease, background .25s ease, opacity .2s ease; }
+button:active:not(:disabled) { transform: scale(.97); }
+button:disabled { cursor: not-allowed; }
+
+/* Display type */
+.page-title, .section-title, .dash-name, .login-card h1, .portfolio-amount,
+.stat-value, .inv-sum-scheme, .inv-sum-item-val, .profile-name, .cow-name,
+.mini-val, .profit, .cow-profit-val, .header h2, .notif-panel-title,
+.rep-sum-val, .ps-val, .isc-val, .rm-val {
+  font-family: 'Poppins', 'Inter', sans-serif;
+}
+
+/* ─── Dashboard shell ───────────────────────────────────────────────────── */
+.dashboard-container {
+  background:
+    radial-gradient(900px 380px at 100% -8%, rgba(139,216,95,.20), transparent 60%),
+    radial-gradient(700px 320px at -10% 8%, rgba(28,107,115,.10), transparent 60%),
+    linear-gradient(180deg, #f6fbf4 0%, #edf5ea 100%);
+}
+
+.dash-hello { color: var(--bv-muted); letter-spacing: .01em; }
+.dash-name  { letter-spacing: -.02em; }
+
+.notif-btn {
+  background: rgba(255,255,255,.9);
+  border: 1px solid var(--bv-line);
+  backdrop-filter: blur(10px);
+}
+.notif-btn:hover { transform: translateY(-1px) scale(1.04); }
+.notif-badge, .notif-badge-count { box-shadow: 0 0 0 3px rgba(244,249,242,1); }
+
+/* Portfolio hero card */
+.portfolio {
+  background:
+    radial-gradient(420px 220px at 105% -10%, rgba(139,216,95,.34), transparent 62%),
+    radial-gradient(320px 200px at -8% 110%, rgba(46,229,157,.14), transparent 60%),
+    var(--bv-gradient-deep);
+  border: 1px solid rgba(139,216,95,.20);
+  box-shadow: 0 18px 40px rgba(8,26,45,.30), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.portfolio-label { color: #b8e79a; letter-spacing: .16em; }
+.portfolio-amount { letter-spacing: -.045em; text-shadow: 0 2px 18px rgba(0,0,0,.22); }
+.growth { color: var(--bv-mint); }
+.portfolio-mini-stats {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.07);
+  backdrop-filter: blur(6px);
+}
+
+/* Cards */
+.card, .stat-card {
+  border: 1px solid var(--bovest-border);
+  box-shadow: var(--shadow-sm);
+}
+.card:hover, .investment-summary-card:hover, .reports-summary:hover, .report-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-icon-wrap.green { background: linear-gradient(135deg, #e3f6e1, #bfe8bd); box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
+.stat-icon-wrap.navy  { background: linear-gradient(135deg, #e1eef7, #b1d1e6); box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
+.stat-value { letter-spacing: -.03em; }
+.stat-sub   { color: var(--bv-muted); }
+
+.section-title { color: var(--bovest-navy); letter-spacing: -.02em; }
+
+/* Quick actions */
+.quick-btn {
+  border-color: var(--bovest-border);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbf5 100%);
+}
+.quick-btn:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #eef8ea 100%);
+  border-color: #bfe0b8;
+  transform: translateY(-2px);
+}
+.quick-icon {
+  background: linear-gradient(135deg, #e6f6e2, #cdeec8);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85);
+}
+
+/* Investment summary card */
+.investment-summary-card {
+  background: linear-gradient(165deg, #ffffff 0%, #f1faee 100%);
+  border: 1px solid #cfe9c8;
+  box-shadow: 0 10px 28px rgba(31,138,76,.10);
+}
+.investment-summary-card::before { display: none; }
+.inv-sum-label, .inv-sum-item-label { color: var(--bv-muted); }
+.inv-sum-badge { background: linear-gradient(135deg, #d9f4d2, #bfeab6); color: #12703a; }
+.inv-sum-item-val { color: var(--bovest-navy); }
+
+/* Lock-in progress */
+.lockup-track, .health-bar-track { background: #e8f0e6; box-shadow: inset 0 1px 2px rgba(10,32,54,.08); }
+.lockup-fill, .health-bar-fill { background-image: var(--bv-gradient-brand); border-radius: 9px; }
+
+/* Activity cards */
+.activity-card {
+  border: 1px solid #d6ebd1;
+  background: linear-gradient(180deg, #ffffff 0%, #fafdf9 100%);
+  box-shadow: var(--shadow-sm);
+}
+.activity-card:hover {
+  background: #f7fdf5;
+  border-color: #b7dfaf;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.activity-icon-wrap { background: linear-gradient(135deg, #e3f6de, #c4eac0); }
+.profit { color: #14914a; text-shadow: none; }
+.activity-left strong { color: var(--bovest-navy); }
+.activity-detail { color: var(--bv-muted); }
+
+/* Expanded daily report (dark panel inside activity card) */
+.activity-expanded { letter-spacing: .005em; }
+.exp-stat, .exp-earn-row, .exp-vet-row, .exp-notes {
+  box-shadow: inset 0 0 0 1px rgba(10,32,54,.04);
+}
+.exp-earn-row.net {
+  background: linear-gradient(90deg, #e3f6e0, #d2f0cc);
+}
+
+/* Page headers */
+.page-title { letter-spacing: -.035em; }
+.page-sub   { color: var(--bv-muted); }
+
+/* ─── Bottom navigation ─────────────────────────────────────────────────── */
+.bottom-nav {
+  background: rgba(255,255,255,.82);
+  backdrop-filter: blur(26px) saturate(190%);
+  -webkit-backdrop-filter: blur(26px) saturate(190%);
+  border: 1px solid rgba(255,255,255,.75);
+  box-shadow: 0 16px 40px rgba(8,26,45,.18), 0 0 0 1px rgba(10,32,54,.05);
+}
+.nav-item a { color: #8aa097; }
+.nav-item.active a::before {
+  background: var(--bv-gradient-brand);
+  opacity: .16;
+}
+.nav-item.active a, .nav-item.active .nav-label { color: var(--bovest-green-dark); }
+.nav-active-dot { background: var(--bv-gradient-brand); box-shadow: 0 2px 8px rgba(31,157,87,.5); }
+.nav-label { letter-spacing: .05em; }
+
+/* ─── Auth screens ──────────────────────────────────────────────────────── */
+.auth-container {
+  background:
+    radial-gradient(520px 300px at 88% 2%, rgba(79,184,87,.45), transparent 62%),
+    radial-gradient(420px 260px at -10% 100%, rgba(28,107,115,.40), transparent 60%),
+    var(--bv-gradient-deep);
+}
+.glass-card {
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(184,231,154,.24);
+  box-shadow: 0 24px 56px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.10);
+}
+.input-field {
+  background: rgba(255,255,255,.95);
+  border: 1.5px solid rgba(139,216,95,.55);
+}
+.input-field:focus-within {
+  border-color: var(--bv-emerald);
+  box-shadow: 0 0 0 4px rgba(31,157,87,.16);
+}
+.input-field.input-error { border-color: #e5484d; box-shadow: 0 0 0 4px rgba(229,72,77,.12); }
+
+.next-btn, .auth-action-btn, .login-card form > button.login-submit-btn {
+  background: var(--bv-gradient-brand);
+  box-shadow: var(--shadow-green);
+  letter-spacing: .01em;
+}
+.next-btn:hover:not(:disabled), .auth-action-btn:hover:not(:disabled),
+.login-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(31,157,87,.38);
+  filter: saturate(1.08);
+}
+
+.scheme-option { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.16); }
+.scheme-option:hover { background: rgba(255,255,255,.12); }
+
+/* Login */
+.login-screen { background: var(--bovest-cream); }
+.login-sky {
+  background:
+    radial-gradient(circle at 51% 92%, #9be46f 0, rgba(91,181,85,.24) 3%, transparent 18%),
+    radial-gradient(420px 260px at 100% 0%, rgba(139,216,95,.22), transparent 60%),
+    linear-gradient(155deg, #071a2e, #12405f 60%, #22775a);
+}
+.login-sky::after { background: var(--bovest-cream); }
+.login-brand { text-shadow: 0 4px 24px rgba(0,0,0,.25); }
+.login-sky p { color: #d3efc6; }
+.login-card {
+  background: rgba(255,255,255,.90);
+  border: 1px solid rgba(255,255,255,.95);
+  box-shadow: 0 24px 56px rgba(8,26,45,.18);
+}
+.cow-badge {
+  background: linear-gradient(145deg, #e0f6d6, #a8e08f);
+  box-shadow: 0 10px 24px rgba(20,78,52,.22);
+}
+.login-card form label { border-color: #cfe8c8; background: #f8fdf6; }
+.login-card form label:focus-within {
+  border-color: var(--bv-emerald);
+  box-shadow: 0 0 0 4px rgba(31,157,87,.14);
+}
+.login-card form label.filled { border-color: #8cd073; }
+.signup-copy button { color: var(--bovest-green-dark); }
+
+/* Splash */
+.splash-screen {
+  background:
+    radial-gradient(520px 320px at 50% 38%, rgba(79,184,87,.30), transparent 62%),
+    var(--bv-gradient-deep);
+}
+
+/* ─── Cows ──────────────────────────────────────────────────────────────── */
+.cows-summary-strip, .reports-summary, .profile-stats-row, .past-report-card, .settings-item {
+  background: linear-gradient(180deg, #ffffff 0%, #fafdf9 100%);
+  border-color: var(--bovest-border);
+}
+.cow-card {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfef9 100%);
+  border-color: var(--bovest-border);
+  box-shadow: var(--shadow-sm);
+}
+.cow-card:hover { box-shadow: var(--shadow-md); border-color: #c4e2bd; }
+.cow-avatar { box-shadow: 0 4px 14px rgba(31,138,76,.18); }
+.cow-tag { background: linear-gradient(135deg, #e3f6de, #cdeec8); color: #17703d; }
+.cow-profit-val { color: #14914a; }
+.cow-stat { background: #f5faf3; }
+.cow-stat-label, .cow-breed, .cow-location { color: var(--bv-muted); }
+
+/* ─── Reports ───────────────────────────────────────────────────────────── */
+.report-card {
+  border-top-color: var(--bv-emerald);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfef9 100%);
+}
+.report-earnings-bar { background: linear-gradient(135deg, #eaf7e7, #dff2db); }
+
+/* ─── Profile ───────────────────────────────────────────────────────────── */
+.profile-avatar {
+  background: var(--bv-gradient-brand);
+  border: 3px solid #fff;
+  box-shadow: 0 8px 22px rgba(31,138,76,.28);
+}
+.profile-name { letter-spacing: -.02em; }
+.settings-item { box-shadow: var(--shadow-sm); }
+.settings-item:hover {
+  transform: translateX(2px);
+  border-color: #bfe0b8;
+  box-shadow: var(--shadow-md);
+}
+.settings-icon-wrap { box-shadow: inset 0 1px 0 rgba(255,255,255,.85); }
+.logout-btn {
+  background: linear-gradient(180deg, #fff6f6, #ffecec);
+  border-color: #f7c9c9;
+}
+.logout-btn:hover { background: #ffe6e6; }
+
+/* ─── Notifications panel ───────────────────────────────────────────────── */
+.notif-backdrop.visible { backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.notif-panel { background: #fbfdfa; box-shadow: -12px 0 48px rgba(8,26,45,.22); }
+.notif-item { border-bottom-color: #eaf2e8; }
+.notif-item.unread { background: linear-gradient(90deg, #f1fbee, #fbfef9); }
+.notif-item:hover { background: #f3faf0; }
+.notif-unread-dot { background: var(--bv-emerald); box-shadow: 0 0 0 3px rgba(31,157,87,.18); }
+
+/* ─── Inline-styled screens (Reports, KYC, Bank, Edit profile) ──────────────
+   These pages use inline styles, so unify their look with attribute selectors. */
+div[style*="border-radius: 20px"][style*="background: rgb(255, 255, 255)"] {
+  box-shadow: var(--shadow-sm) !important;
+  border-color: var(--bovest-border) !important;
+}
+div[style*="background: rgb(247, 251, 244)"] { background: #f3f9f1 !important; }
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+textarea:focus, select:focus { outline: none; }
+
+/* ─── Motion preferences ────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ─── Cow card: today's milk & rate chips ───────────────────────────────── */
+.cow-milk-split {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 8px;
+}
+.milk-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 9px 4px 7px;
+  border-radius: 999px;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-size: 11px; line-height: 1.2;
+  border: 1px solid transparent;
+}
+.milk-chip svg { flex-shrink: 0; }
+.milk-chip em { font-style: normal; font-weight: 500; letter-spacing: .01em; opacity: .75; }
+.milk-chip b { font-weight: 700; letter-spacing: -.01em; }
+.milk-chip.morn { background: #fff4d9; border-color: #f8e2a8; color: #a56a05; }
+.milk-chip.eve  { background: #e9edfd; border-color: #cfd8f8; color: #3b4bb0; }
+.milk-chip.rate { background: #e3f6e4; border-color: #c4e8c6; color: #1a7a43; }
+.milk-chip b { color: var(--bovest-navy); }
+
+/* ─── Cows page: coloured summary strip & cow profile cards ─────────────── */
+.cows-summary-strip {
+  background: linear-gradient(135deg, #0d263b 0%, #1a4163 100%);   /* same navy as the farm-visit banner */
+  border: 1px solid #1f4a6e;
+  box-shadow: 0 14px 32px rgba(8,26,45,.22), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.cows-summary-strip .strip-label { color: rgba(255,255,255,.6); }
+.cows-summary-strip .strip-val   { color: #fff; }
+.cows-summary-strip .strip-sep   { background: rgba(255,255,255,.14); }
+.cows-summary-strip .cow-strip-item > svg {
+  box-sizing: content-box;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 4px 12px rgba(0,0,0,.18);
+  flex-shrink: 0;
+}
+
+.cow-card {
+  position: relative;
+  overflow: hidden;
+  background: #e9f0f7;              /* pale blue drawn from the app's navy */
+  border: 1px solid #c6d6e6;
+  box-shadow: 0 6px 18px rgba(13,38,59,.08);
+}
+.cow-card::before { display: none; }
+.cow-card:hover { border-color: #a9c1d9; box-shadow: 0 10px 26px rgba(13,38,59,.14); }
+.cow-card .cow-name { color: #0d263b; }
+.cow-card .cow-tag { background: #14395a; color: #fff; }
+.cow-card .cow-avatar { background: #d5e2ee; box-shadow: 0 4px 12px rgba(13,38,59,.18); }
+.cow-card.expanded .cow-avatar { border-color: #14395a; box-shadow: 0 10px 24px rgba(13,38,59,.22); }
+.cow-card .cow-stats-grid,
+.cow-card .exp-stat {
+  background: #ffffff;
+  border: 1px solid #d5e2ee;
+}
+.cow-card .cow-stat { background: transparent; }
+.cow-card .health-bar-track { background: #d5e2ee; }
+.cow-card .exp-section-title { color: #14395a; }
+.cow-card .activity-expanded { border-top-color: #c6d6e6; }
+
+/* No coloured accent strips on top of cards */
+.report-card { border-top: 1px solid var(--bovest-border); }
+
+/* ─── Blue card family (Reports investment card, monthly records) ───────── */
+.bv-blue-card {
+  background: #e9f0f7;
+  border: 1px solid #c6d6e6;
+  box-shadow: 0 6px 18px rgba(13,38,59,.08);
+  transition: background .35s ease, border-color .35s ease, box-shadow .35s ease, transform .18s ease;
+}
+
+/* ─── Tap-to-open cards: cow profile & monthly records ──────────────────── */
+.cow-card, .bv-click-card {
+  transition: background .35s ease, border-color .35s ease, box-shadow .35s ease, transform .18s ease;
+}
+.cow-card:active, .bv-click-card:active { transform: scale(.985); }
+
+/* Open / selected state: deeper blue, navy outline, lifted */
+.cow-card.expanded, .bv-click-card.is-open {
+  background: #dce8f4;
+  border-color: #14395a;
+  box-shadow: 0 0 0 3px rgba(20,57,90,.12), 0 16px 34px rgba(13,38,59,.18);
+}
+.cow-card.expanded .cow-stats-grid,
+.cow-card.expanded .exp-stat { border-color: #bcd0e4; }
+
+/* Revealed content slides in */
+@keyframes bvReveal { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.cow-card .activity-expanded, .bv-card-details { animation: bvReveal .35s ease both; }

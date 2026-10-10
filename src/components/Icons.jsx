@@ -24,6 +24,22 @@ export const CowIcon = ({ size = 24, color = 'currentColor' }) => {
   );
 };
 
+export const CowOutlineIcon = ({ size = 48, color = 'currentColor', strokeWidth = 2.5 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M17 26c-6-5-10-6-12-3 2 5 6 8 13 9M47 26c6-5 10-6 12-3-2 5-6 8-13 9" fill="#dcebd8" />
+    <path d="M23 19l-3-8 9 7M41 19l3-8-9 7" fill="#f2d58e" />
+    <path d="M15 27c0-7 6-12 17-12s17 5 17 12l-1 13c-.5 8-7 14-16 14s-15.5-6-16-14l-1-13Z" fill="#f3f7ed" />
+    <path d="M28 19c1 3 2 5 4 6 2-2 3-4 4-6" fill="#dcebd8" stroke="none" />
+    <path d="M19 30c2-3 5-4 8-2v7c-2 3-6 3-8-1M45 30c-2-3-5-4-8-2v7c2 3 6 3 8-1" fill="#b8d7b4" stroke="none" />
+    <circle cx="25" cy="32" r="1.5" fill={color} stroke="none" />
+    <circle cx="39" cy="32" r="1.5" fill={color} stroke="none" />
+    <rect x="22" y="39" width="20" height="12" rx="6" fill="#f3d8c9" />
+    <ellipse cx="28" cy="44" rx="1.2" ry="1.8" fill={color} stroke="none" />
+    <ellipse cx="36" cy="44" rx="1.2" ry="1.8" fill={color} stroke="none" />
+    <path d="M29 49c2 1 4 1 6 0" />
+  </svg>
+);
+
 export const ChartIcon = ({ size = 24, color = 'currentColor', strokeWidth = 1.8 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 3v18h18" />

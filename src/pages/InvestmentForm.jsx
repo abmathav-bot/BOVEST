@@ -13,13 +13,6 @@ const schemes = [
     color: '#287b45',
     bg: '#e8f5e9',
   },
-  {
-    value: 'B',
-    label: 'Scheme B — Amount-Based',
-    desc: '3-year lock-in. Monthly fixed payouts on capital.',
-    color: '#1565c0',
-    bg: '#e3f2fd',
-  },
 ];
 
 const InvestmentForm = () => {
@@ -49,7 +42,9 @@ const InvestmentForm = () => {
   const handleNext = () => {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    navigate('/accept-terms', { state: { investmentData: formData } });
+    navigate('/accept-terms', {
+      state: { investmentData: { ...formData, idProofFilename: fileName } },
+    });
   };
 
   const selectedScheme = schemes.find(s => s.value === formData.scheme);

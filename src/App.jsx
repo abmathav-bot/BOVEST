@@ -15,14 +15,21 @@ import Profile from './pages/Profile';
 import EditProfile from './pages/EditProfile';
 import BankDetails from './pages/BankDetails';
 import KYCDetails from './pages/KYCDetails';
+import Invoices from './pages/Invoices';
+import Support from './pages/Support';
+import Agreement from './pages/Agreement';
 import './index.css';
 
 /* Pages that should display the bottom navigation bar */
 const NAV_ROUTES = ['/home', '/cows', '/reports', '/profile'];
 
 function PrivateRoute({ children }) {
-  const { isLoggedIn } = useAppContext();
-  return isLoggedIn ? children : <Navigate to="/login" replace />;
+  const { isLoggedIn, loadingUser, user } = useAppContext();
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  // Only show loading if we have NO user data yet — if user is set from login, render immediately
+  if (loadingUser && !user) return <div style={{ display: 'flex', height: '100dvh', alignItems: 'center', justifyContent: 'center', color: '#9aaba5', fontSize: '14px' }}>Loading your account...</div>;
+  if (!user) return <div style={{ display: 'flex', height: '100dvh', alignItems: 'center', justifyContent: 'center', color: '#9aaba5', fontSize: '14px' }}>Loading your account...</div>;
+  return children;
 }
 
 function AppRoutes() {
@@ -51,6 +58,9 @@ function AppRoutes() {
           <Route path="/edit-profile"    element={<PrivateRoute><EditProfile /></PrivateRoute>} />
           <Route path="/bank-details"    element={<PrivateRoute><BankDetails /></PrivateRoute>} />
           <Route path="/kyc-details"     element={<PrivateRoute><KYCDetails /></PrivateRoute>} />
+          <Route path="/invoices"        element={<PrivateRoute><Invoices /></PrivateRoute>} />
+          <Route path="/support"         element={<PrivateRoute><Support /></PrivateRoute>} />
+          <Route path="/agreement"       element={<PrivateRoute><Agreement /></PrivateRoute>} />
           <Route path="*"                element={<Navigate to="/" replace />} />
         </Routes>
       </div>

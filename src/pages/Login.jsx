@@ -22,14 +22,19 @@ export default function Login() {
   const submit = async (event) => {
     event.preventDefault();
     if (!form.userId.trim() || !form.password.trim()) {
-      setError('Please enter your User ID and password.');
+      setError('Please enter your email and password.');
       return;
     }
     setLoading(true);
     setError('');
-    await new Promise(r => setTimeout(r, 800));
-    login();
-    navigate('/home', { replace: true });
+    try {
+      await login(form.userId.trim(), form.password);
+      navigate('/home', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,9 +57,10 @@ export default function Login() {
           <label className={form.userId ? 'filled' : ''}>
             <span className="input-icon"><UserIcon /></span>
             <input
-              aria-label="User ID"
-              placeholder="User ID"
-              autoComplete="username"
+              aria-label="Email"
+              placeholder="Email Address"
+              autoComplete="email"
+              type="email"
               value={form.userId}
               onChange={e => setForm({ ...form, userId: e.target.value })}
             />

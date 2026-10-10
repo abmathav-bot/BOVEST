@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+import { api } from '../utils/api';
 
 const ArrowLeft = ({ size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -16,20 +17,28 @@ const LockIcon = () => (
 
 const EditProfile = () => {
   const navigate = useNavigate();
-  const { user, updateUser } = useAppContext();
-  const [name, setName] = useState(user.name);
+ const { user, updateUser, refreshUser } = useAppContext();
+  const [name, setName] = useState(user?.name || '');
   const [saved, setSaved] = useState(false);
   const [avatarKey, setAvatarKey] = useState(0);
-  const [preview, setPreview] = useState(null);
-
+  const [preview, setPreview] = useState(user?.avatar_url || null);
+const [avatarFile, setAvatarFile] = useState(null);
+const [saving, setSaving] = useState(false);
+const [error, setError] = useState('');
   const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setPreview(ev.target.result);
-      reader.readAsDataURL(file);
-    }
-  };
+  const file = e.target.files?.[0];
+
+  if (!file || !file.type.startsWith('image/')) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    setError('Please choose an image smaller than 5 MB.');
+    return;
+  }
+
+  setAvatarFile(file);
+  setPreview(URL.createObjectURL(file));
+  setError('');
+};
 
   const gradients = [
     ['#287b45', '#58ae3f'], ['#1565c0', '#42a5f5'],
@@ -37,12 +46,32 @@ const EditProfile = () => {
   ];
   const [g1, g2] = gradients[avatarKey % gradients.length];
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    updateUser({ name });
+  const handleSave = async (e) => {
+  e.preventDefault();
+  setSaving(true);
+  setError('');
+
+  try {
+    const updates = { name };
+
+    if (avatarFile) {
+      const result = await api.user.uploadAvatar(avatarFile);
+      updates.avatar_url = result.avatar_url;
+    }
+
+    await api.user.updateProfile(updates);
+
+    updateUser(updates);
+    await refreshUser();
+
     setSaved(true);
-    setTimeout(() => navigate('/profile'), 1500);
-  };
+    setTimeout(() => navigate('/profile'), 1000);
+  } catch (err) {
+    setError(err.message || 'Unable to save profile changes.');
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f7f5', paddingBottom: '40px' }}>
@@ -88,7 +117,7 @@ const EditProfile = () => {
             Change Photo
           </button>
           <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: 800, marginTop: '12px', marginBottom: '2px' }}>{user.name}</h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px' }}>BOV-{user.id.toString().padStart(4, '0')}</p>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px' }}>{user.investor_id || `BOV-${String(user.id).padStart(4, '0')}`}</p>
         </div>
       </div>
 
@@ -107,7 +136,7 @@ const EditProfile = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <p style={{ fontSize: '11px', color: '#aab5be', marginBottom: '4px' }}>Investor ID</p>
-                  <p style={{ fontSize: '15px', fontWeight: 700, color: '#0d263b' }}>BOV-{user.id.toString().padStart(4, '0')}</p>
+                  <p style={{ fontSize: '15px', fontWeight: 700, color: '#0d263b' }}>{user.investor_id || `BOV-${String(user.id).padStart(4, '0')}`}</p>
                 </div>
                 <LockIcon />
               </div>
@@ -183,8 +212,9 @@ const EditProfile = () => {
 
           <button
             type="submit"
+            disabled={saving}
             style={{ width: '100%', padding: '16px', borderRadius: '16px', border: 'none', background: 'linear-gradient(135deg, #287b45, #58ae3f)', color: '#fff', fontWeight: 700, fontSize: '16px', boxShadow: '0 6px 20px rgba(40,123,69,0.3)', cursor: 'pointer' }}>
-            Save Changes
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
       </div>

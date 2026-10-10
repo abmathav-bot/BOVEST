@@ -1,55 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BottomNav from '../components/BottomNav';
-import { HeartIcon, MilkIcon, StarIcon, TrendUpIcon, CalendarIcon, ChartIcon } from '../components/Icons';
-
-const cowData = [
-  {
-    id: 101,
-    name: 'Gauri',
-    tag: 'BOV-101',
-    breed: 'HF Cross',
-    health: 'Excellent',
-    healthScore: 97,
-    milkMorning: 4.2,
-    milkEvening: 4.0,
-    milkToday: 8.2,
-    milkAvg: 7.9,
-    age: '4 yrs',
-    location: 'Shed A — Pen 3',
-    lastCheckup: '18 Sep 2026',
-    profitToday: 43,
-    rating: 5,
-    image: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=300&h=300&fit=crop',
-    thisMonthMilk: '245 L',
-    temperature: '38.4°C',
-    foodConsumed: '540 kg',
-    waterConsumed: '1860 L',
-    costEarnedMonth: '₹9,800',
-  },
-  {
-    id: 102,
-    name: 'Nandini',
-    tag: 'BOV-102',
-    breed: 'Jersey Cross',
-    health: 'Good',
-    healthScore: 83,
-    milkMorning: 3.5,
-    milkEvening: 3.0,
-    milkToday: 6.5,
-    milkAvg: 6.8,
-    age: '3 yrs',
-    location: 'Shed B — Pen 7',
-    lastCheckup: '20 Sep 2026',
-    profitToday: 34,
-    rating: 4,
-    image: 'https://images.unsplash.com/photo-1527153857715-3908f2bae5e8?w=300&h=300&fit=crop',
-    thisMonthMilk: '195 L',
-    temperature: '38.2°C',
-    foodConsumed: '480 kg',
-    waterConsumed: '1500 L',
-    costEarnedMonth: '₹7,800',
-  },
-];
+import { api } from '../utils/api';
+import { HeartIcon, MilkIcon, StarIcon, TrendUpIcon, CalendarIcon, ChartIcon, CowOutlineIcon } from '../components/Icons';
 
 const healthColor = (score) => {
   if (score >= 90) return '#287b45';
@@ -57,125 +9,170 @@ const healthColor = (score) => {
   return '#e05252';
 };
 
+const iconProps = { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' };
+
+const SunIcon = () => (
+  <svg {...iconProps}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg {...iconProps}>
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+  </svg>
+);
+
+const RupeeIcon = () => (
+  <svg {...iconProps}>
+    <path d="M6 4h12M6 9h12M6 4c6 0 8 2 8 5s-2 5-8 5l7 6" />
+  </svg>
+);
+
+/* A saved location can be a Google Maps link or plain text; either opens in Google Maps */
+const mapsUrl = (loc) => {
+  const v = (loc || '').trim();
+  if (!v) return null;
+  return /^https?:\/\//i.test(v) ? v : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v)}`;
+};
+
 const CowCard = ({ cow }) => {
   const [expanded, setExpanded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  const milkToday = cow.milk_today ?? ((cow.milk_morning || 0) + (cow.milk_evening || 0));
+  const profit = cow.profit_today ?? cow.latest_profit ?? cow.net_investor_profit ?? 0;
+  const lastCheckup = cow.last_checkup_date
+    ? new Date(cow.last_checkup_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    : '—';
+
   return (
     <>
-      <div 
-        className={`cow-card ${expanded ? 'expanded' : ''}`} 
+      <div
+        className={`cow-card ${expanded ? 'expanded' : ''}`}
         style={{ cursor: 'pointer', userSelect: 'none' }}
         onClick={() => setExpanded(v => !v)}
       >
-        {/* Card Header */}
         <div className="cow-card-header">
-          <div 
-            className="cow-avatar" 
-            onClick={(e) => { e.stopPropagation(); setIsFullscreen(true); }}
-            style={{ cursor: 'zoom-in' }}
+          <div
+            className="cow-avatar"
+            onClick={(e) => { e.stopPropagation(); if (cow.image_url) setIsFullscreen(true); }}
+            style={{ cursor: cow.image_url ? 'zoom-in' : 'default' }}
           >
-            <img src={cow.image} alt={cow.name} />
+            {cow.image_url
+              ? <img src={cow.image_url} alt={cow.name} />
+              : <div style={{ width: '100%', height: '100%', background: '#e8f5e9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CowOutlineIcon size={28} color="#287b45" /></div>
+            }
           </div>
           <div className="cow-info-primary">
-          <div className="cow-name-row">
-            <h3 className="cow-name">{cow.name}</h3>
-            <span className="cow-tag">{cow.tag}</span>
+            <div className="cow-name-row">
+              <h3 className="cow-name">{cow.name}</h3>
+              <span className="cow-tag">{cow.tag}</span>
+            </div>
+            <p className="cow-breed">{cow.breed || 'Unknown'} • Age: {cow.age || '—'}</p>
+            <div className="cow-milk-split">
+              <span className="milk-chip morn">
+                <SunIcon />
+                <em>Morn</em><b>{cow.milk_morning ?? '—'} L</b>
+              </span>
+              <span className="milk-chip eve">
+                <MoonIcon />
+                <em>Eve</em><b>{cow.milk_evening ?? '—'} L</b>
+              </span>
+              <span className="milk-chip rate">
+                <RupeeIcon />
+                <em>Rate</em><b>₹{cow.rate_per_litre ?? 42}/L</b>
+              </span>
+            </div>
           </div>
-          <p className="cow-breed">{cow.breed} • Age: {cow.age}</p>
-          <div className="cow-milk-split" style={{ fontSize: '11.5px', color: '#7a8fa0', marginTop: '4px' }}>
-            ☀️ Morn: <span style={{color: 'var(--bovest-navy)', fontWeight: 600}}>{cow.milkMorning} L</span> &nbsp;•&nbsp; 🌙 Eve: <span style={{color: 'var(--bovest-navy)', fontWeight: 600}}>{cow.milkEvening} L</span> &nbsp;•&nbsp; 💰 Rate: <span style={{color: 'var(--bovest-navy)', fontWeight: 600}}>₹42/L</span>
+          <div className="cow-profit-badge">
+            <p className="cow-profit-label">Today's Profit</p>
+            <p className="cow-profit-val">+₹{Number(profit).toFixed(0)}</p>
           </div>
         </div>
-        <div className="cow-profit-badge">
-          <p className="cow-profit-label">Today's Profit</p>
-          <p className="cow-profit-val">+₹{cow.profitToday}</p>
-        </div>
-      </div>
 
-      {/* Health Bar */}
-      <div className="cow-health-row">
-        <div className="cow-health-label">
-          <HeartIcon size={14} color={healthColor(cow.healthScore)} />
-          <span style={{ color: healthColor(cow.healthScore) }}>Health: {cow.health}</span>
+        <div className="cow-health-row">
+          <div className="cow-health-label">
+            <HeartIcon size={14} color={healthColor(cow.health_score)} />
+            <span style={{ color: healthColor(cow.health_score) }}>Health: {cow.health_status || 'Good'}</span>
+          </div>
+          <span className="cow-health-pct" style={{ color: healthColor(cow.health_score) }}>{cow.health_score}%</span>
         </div>
-        <span className="cow-health-pct" style={{ color: healthColor(cow.healthScore) }}>{cow.healthScore}%</span>
-      </div>
-      <div className="health-bar-track">
-        <div className="health-bar-fill" style={{ width: `${cow.healthScore}%`, background: healthColor(cow.healthScore) }} />
-      </div>
+        <div className="health-bar-track">
+          <div className="health-bar-fill" style={{ width: `${cow.health_score}%`, background: healthColor(cow.health_score) }} />
+        </div>
 
-      {/* Stats Grid */}
-      <div className="cow-stats-grid">
-        <div className="cow-stat">
-          <MilkIcon size={15} color="var(--bovest-green-dark)" />
-          <p className="cow-stat-label">Today</p>
-          <p className="cow-stat-val">{cow.milkToday} L</p>
+        <div className="cow-stats-grid">
+          <div className="cow-stat">
+            <MilkIcon size={15} color="var(--bovest-green-dark)" />
+            <p className="cow-stat-label">Today</p>
+            <p className="cow-stat-val">{milkToday.toFixed(1)} L</p>
+          </div>
+          <div className="cow-stat">
+            <MilkIcon size={15} color="#888" />
+            <p className="cow-stat-label">Location</p>
+            {cow.location ? (
+              <a
+                className="cow-stat-val"
+                href={mapsUrl(cow.location)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                style={{ fontSize: 11, color: '#1565c0', fontWeight: 700, textDecoration: 'underline' }}
+              >
+                View on map
+              </a>
+            ) : (
+              <p className="cow-stat-val" style={{ fontSize: 10 }}>—</p>
+            )}
+          </div>
+          <div className="cow-stat">
+            <CalendarIcon size={15} color="var(--bovest-navy)" />
+            <p className="cow-stat-label">Checkup</p>
+            <p className="cow-stat-val" style={{ fontSize: 11 }}>{lastCheckup}</p>
+          </div>
         </div>
-        <div className="cow-stat">
-          <MilkIcon size={15} color="#888" />
-          <p className="cow-stat-label">Daily Avg</p>
-          <p className="cow-stat-val">{cow.milkAvg} L</p>
-        </div>
-        <div className="cow-stat">
-          <CalendarIcon size={15} color="var(--bovest-navy)" />
-          <p className="cow-stat-label">Checkup</p>
-          <p className="cow-stat-val" style={{ fontSize: 11 }}>{cow.lastCheckup}</p>
-        </div>
-      </div>
 
-      <div className="cow-expand-handle" style={{ display: 'flex', justifyContent: 'center', marginTop: '6px' }}>
-        <div className={`activity-chevron ${expanded ? 'rotated' : ''}`}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 9l6 6 6-6"/>
-          </svg>
+        <div className="cow-expand-handle" style={{ display: 'flex', justifyContent: 'center', marginTop: '6px' }}>
+          <div className={`activity-chevron ${expanded ? 'rotated' : ''}`}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </div>
         </div>
-      </div>
 
-      {/* Expanded details */}
-      {expanded && (
-        <div className="activity-expanded" onClick={e => e.stopPropagation()}>
-          <p className="exp-section-title">Detailed Report</p>
-          <div className="exp-group">
-            <p className="exp-group-label">This Month Summary</p>
-            <div className="exp-earn-list">
-              <div className="exp-earn-row">
-                <span>Total Milk Given</span><span>{cow.thisMonthMilk}</span>
-              </div>
-              <div className="exp-earn-row net">
-                <span>Revenue Earned</span><span className="net-val">+{cow.costEarnedMonth}</span>
+        {expanded && (
+          <div className="activity-expanded" onClick={e => e.stopPropagation()}>
+            <p className="exp-section-title">Detailed Info</p>
+            <div className="exp-group">
+              <p className="exp-group-label">Medical & Care</p>
+              <div className="exp-row">
+                <div className="exp-stat">
+                  <span className="exp-stat-label">Breed</span>
+                  <span className="exp-stat-val">{cow.breed || '—'}</span>
+                </div>
+                <div className="exp-stat">
+                  <span className="exp-stat-label">Age</span>
+                  <span className="exp-stat-val">{cow.age || '—'}</span>
+                </div>
+                <div className="exp-stat">
+                  <span className="exp-stat-label">Rating</span>
+                  <span className="exp-stat-val">{'⭐'.repeat(cow.rating || 0)}</span>
+                </div>
               </div>
             </div>
           </div>
-          <div className="exp-group" style={{ marginBottom: 0 }}>
-            <p className="exp-group-label">Medical & Care</p>
-            <div className="exp-row">
-              <div className="exp-stat">
-                <span className="exp-stat-label">Body Temp</span>
-                <span className="exp-stat-val">{cow.temperature}</span>
-              </div>
-              <div className="exp-stat">
-                <span className="exp-stat-label">Food Cons.</span>
-                <span className="exp-stat-val">{cow.foodConsumed}</span>
-              </div>
-              <div className="exp-stat">
-                <span className="exp-stat-label">Water Cons.</span>
-                <span className="exp-stat-val">{cow.waterConsumed}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
       </div>
 
       {isFullscreen && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999,
-          display: 'flex', justifyContent: 'center', alignItems: 'center',
-          cursor: 'zoom-out'
+          display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'zoom-out'
         }} onClick={() => setIsFullscreen(false)}>
-          <img src={cow.image} alt={cow.name} style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }} />
+          <img src={cow.image_url} alt={cow.name} style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '16px' }} />
         </div>
       )}
     </>
@@ -183,29 +180,39 @@ const CowCard = ({ cow }) => {
 };
 
 const Cows = () => {
+  const [cows, setCows] = useState([]);
+  const [marketRate, setMarketRate] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.cows.list()
+      .then(d => { setCows(d.cows || d || []); setMarketRate(d.summary?.market_rate ?? null); })
+      .catch(() => setCows([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalMilk = cows.reduce((s, c) => s + Number(c.milk_today ?? ((c.milk_morning || 0) + (c.milk_evening || 0))), 0);
+  const totalProfit = cows.reduce((s, c) => s + Number(c.profit_today ?? c.latest_profit ?? c.net_investor_profit ?? 0), 0);
+  const avgHealth = cows.length ? Math.round(cows.reduce((s, c) => s + (c.health_score || 0), 0) / cows.length) : 0;
+
   return (
     <div className="dashboard-container">
       <div className="page-header">
         <h2 className="page-title">My Cows</h2>
-        <p className="page-sub">{cowData.length} active animals</p>
+        <p className="page-sub">{cows.length} active animal{cows.length !== 1 ? 's' : ''}</p>
       </div>
+
       {/* Farm Visit Banner */}
       <div style={{
         background: 'linear-gradient(135deg, #0d263b, #1a4163)',
-        borderRadius: '18px',
-        padding: '16px 18px',
-        marginBottom: '16px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '14px',
+        borderRadius: '18px', padding: '16px 18px', marginBottom: '16px',
+        display: 'flex', alignItems: 'center', gap: '14px',
         boxShadow: '0 4px 16px rgba(13,38,59,0.15)',
       }}>
         <div style={{
           width: '44px', height: '44px', borderRadius: '14px',
-          background: 'rgba(46,229,157,0.15)',
-          border: '1.5px solid rgba(46,229,157,0.25)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
+          background: 'rgba(46,229,157,0.15)', border: '1.5px solid rgba(46,229,157,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2ee59d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
@@ -213,22 +220,10 @@ const Cows = () => {
           </svg>
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '3px' }}>
-            Want to Visit the Farm?
-          </p>
+          <p style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '3px' }}>Want to Visit the Farm?</p>
           <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
             To schedule a farm visit and meet your cows in person, please contact our support team.
           </p>
-        </div>
-        <div style={{
-          background: 'rgba(46,229,157,0.15)',
-          border: '1px solid rgba(46,229,157,0.3)',
-          borderRadius: '10px',
-          padding: '6px 12px',
-          flexShrink: 0,
-        }}>
-          <p style={{ fontSize: '11px', fontWeight: 700, color: '#2ee59d' }}>Contact</p>
-          <p style={{ fontSize: '11px', fontWeight: 700, color: '#2ee59d' }}>Support</p>
         </div>
       </div>
 
@@ -238,7 +233,7 @@ const Cows = () => {
           <MilkIcon size={18} color="var(--bovest-green-dark)" />
           <div>
             <p className="strip-label">Total Milk Today</p>
-            <p className="strip-val">{cowData.reduce((s, c) => s + c.milkToday, 0).toFixed(1)} L</p>
+            <p className="strip-val">{totalMilk.toFixed(1)} L</p>
           </div>
         </div>
         <div className="strip-sep" />
@@ -246,7 +241,7 @@ const Cows = () => {
           <TrendUpIcon size={18} color="var(--bovest-green-dark)" />
           <div>
             <p className="strip-label">Today's Profit</p>
-            <p className="strip-val">₹{cowData.reduce((s, c) => s + c.profitToday, 0).toLocaleString('en-IN')}</p>
+            <p className="strip-val">₹{totalProfit.toLocaleString('en-IN')}</p>
           </div>
         </div>
         <div className="strip-sep" />
@@ -254,7 +249,7 @@ const Cows = () => {
           <HeartIcon size={18} color="#e06060" />
           <div>
             <p className="strip-label">Avg Health</p>
-            <p className="strip-val">{Math.round(cowData.reduce((s, c) => s + c.healthScore, 0) / cowData.length)}%</p>
+            <p className="strip-val">{avgHealth > 0 ? `${avgHealth}%` : '—'}</p>
           </div>
         </div>
         <div className="strip-sep" />
@@ -262,7 +257,7 @@ const Cows = () => {
           <ChartIcon size={18} color="var(--bovest-navy)" />
           <div>
             <p className="strip-label">Market Rate</p>
-            <p className="strip-val">₹42/L</p>
+            <p className="strip-val">{marketRate != null ? `₹${marketRate}/L` : '—'}</p>
           </div>
         </div>
       </div>
@@ -272,9 +267,17 @@ const Cows = () => {
         <span className="activity-hint">Tap to expand</span>
       </h3>
 
-      {cowData.map(cow => (
-        <CowCard key={cow.id} cow={cow} />
-      ))}
+      {loading ? (
+        <p style={{ textAlign: 'center', color: '#9aaba5', padding: '32px 0' }}>Loading cows...</p>
+      ) : cows.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px 20px', background: '#f7fbf4', borderRadius: '20px' }}>
+          <div style={{ marginBottom: 12 }}><CowOutlineIcon size={48} color="#287b45" /></div>
+          <p style={{ fontSize: '16px', fontWeight: 700, color: '#0d263b', marginBottom: 6 }}>No Cows Yet</p>
+          <p style={{ fontSize: '13px', color: '#9aaba5' }}>Your cows will appear here once your investment is active and cows are assigned to you.</p>
+        </div>
+      ) : (
+        cows.map(cow => <CowCard key={cow.id} cow={cow} />)
+      )}
 
       <BottomNav />
     </div>

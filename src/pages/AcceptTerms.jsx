@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { BackIcon, CheckIcon, ShieldIcon, DocumentIcon } from '../components/Icons';
+import { api } from '../utils/api';
 
 /* ── Pen-tip SVG icon ── */
 const PenIcon = () => (
@@ -28,7 +29,7 @@ const AcceptTerms = () => {
   const { addInvestment } = useAppContext();
 
   const investmentData = location.state?.investmentData;
-  const schemeName = investmentData?.scheme === 'A' ? 'Scheme A — Milk-Based' : 'Scheme B — Amount-Based';
+  const schemeName = 'Scheme A — Milk-Based';
   const amount = Number(investmentData?.amount || 0).toLocaleString('en-IN');
 
   /* ── Canvas setup ── */
@@ -81,17 +82,30 @@ const AcceptTerms = () => {
 
   const sigReady = signTab === 'draw' ? hasSigned : typedSig.trim().length >= 2;
 
-  const handleProceedPayment = () => {
+  const handleProceedPayment = async () => {
     if (investmentData) {
-      addInvestment({
-        scheme:      investmentData.scheme,
-        amount:      Number(investmentData.amount),
-        startDate:   new Date().toISOString().split('T')[0],
-        activeYears: 0,
-        cows:        investmentData.scheme === 'A' ? 1 : 1,
-        calves:      investmentData.scheme === 'B' ? 1 : 0,
-      });
-      navigate('/home', { replace: true });
+      try {
+        const signatureData = signTab === 'draw'
+          ? canvasRef.current?.toDataURL('image/png')
+          : typedSig.trim();
+        const result = await api.investments.create({
+          scheme: investmentData.scheme,
+          amount: Number(investmentData.amount),
+          phone: investmentData.phone || '',
+          address: investmentData.address || '',
+          id_proof_filename: investmentData.idProofFilename || null,
+          signature_type: signTab,
+          signature_data: signatureData || '',
+        });
+        
+        alert(result.application_details_saved === false
+          ? 'Application submitted, but the ID-proof filename and e-signature were not saved because the database migration is pending. Ask the farm manager to apply the investment details migration before submitting again.'
+          : 'Investment application submitted successfully!');
+        addInvestment(); // calls fetchMe() to refresh user context
+        navigate('/home', { replace: true });
+      } catch (err) {
+        alert(err.message || 'Failed to submit investment');
+      }
     } else {
       navigate('/invest');
     }
@@ -130,7 +144,7 @@ const AcceptTerms = () => {
         <div className="agreement-box">
           {[
             <>I agree to invest ₹{amount} under <strong>{schemeName}</strong> with Bovest Dairy Investment.</>,
-            <>I understand the lock-in period is <strong>{investmentData?.scheme === 'A' ? '5 years' : '3 years'}</strong> with no premature withdrawal.</>,
+            <>I understand the lock-in period is <strong>5 years</strong> with no premature withdrawal.</>,
             <>I acknowledge that returns are subject to livestock performance and market conditions.</>,
             <>All payouts will be credited to my registered bank account on or before the 5th of every month.</>,
             <>I confirm my ID and address documents submitted are genuine and valid.</>,
@@ -144,7 +158,7 @@ const AcceptTerms = () => {
 
         {/* Investment Agreement Button */}
         <button
-          onClick={() => alert('Investment Agreement PDF will be available soon.')}
+          onClick={() => window.open('/farm-agreement.pdf', '_blank', 'noopener,noreferrer')}
           style={{
             width: '100%', display: 'flex', alignItems: 'center',
             justifyContent: 'space-between',

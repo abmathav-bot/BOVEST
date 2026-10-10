@@ -1,0 +1,109 @@
+/* Invoice / Invest History screen and the printable slip */
+
+.inv-page { min-height: 100dvh; background: var(--bovest-cream); padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+
+.inv-hero {
+  background: var(--bv-gradient-deep, linear-gradient(145deg, #081a2d, #0f3150));
+  color: #fff;
+  padding: max(52px, env(safe-area-inset-top)) 20px 64px;
+  border-radius: 0 0 28px 28px;
+}
+.inv-back {
+  width: 40px; height: 40px; border: none; border-radius: 12px;
+  background: rgba(255,255,255,.14); color: #fff;
+  display: grid; place-items: center; margin-bottom: 18px;
+}
+.inv-hero h2 { font-family: 'Poppins', 'Inter', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.inv-hero p { font-size: 13px; color: rgba(255,255,255,.65); margin-top: 3px; }
+.inv-totals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+.inv-totals div {
+  background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px; padding: 12px 14px;
+}
+.inv-totals span { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.6); }
+.inv-totals b { display: block; margin-top: 4px; font-size: 18px; font-weight: 800; color: #2ee59d; }
+.inv-totals div:last-child b { color: #fff; }
+
+.inv-body { margin: -34px 16px 0; }
+.inv-tabs {
+  display: flex; gap: 6px; padding: 5px; margin-bottom: 14px;
+  background: #fff; border: 1px solid var(--bovest-border); border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.inv-tabs button {
+  flex: 1; border: none; background: transparent; border-radius: 12px;
+  padding: 11px 8px; font-size: 13px; font-weight: 700; color: #7a8fa0;
+}
+.inv-tabs button.active { background: var(--bv-gradient-brand, linear-gradient(135deg, #1f8a4c, #4fb857)); color: #fff; box-shadow: var(--shadow-green, 0 8px 20px rgba(31,157,87,.3)); }
+
+.inv-empty {
+  text-align: center; color: #8ba899; font-size: 13px; line-height: 1.6;
+  background: #fff; border: 1px dashed var(--bovest-border); border-radius: 18px; padding: 28px 18px;
+}
+
+.inv-card {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  text-align: left; margin-bottom: 12px; padding: 16px;
+  background: #fff; border: 1px solid var(--bovest-border); border-radius: 18px;
+  box-shadow: var(--shadow-sm); cursor: pointer;
+}
+.inv-card:hover { box-shadow: var(--shadow-md); border-color: #bfe0b8; }
+.inv-card-title { font-size: 15px; font-weight: 800; color: var(--bovest-navy); }
+.inv-card-sub { font-size: 12px; color: #7a9a88; margin-top: 3px; }
+.inv-card-side { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.inv-card-side b { font-size: 17px; font-weight: 800; color: #14914a; }
+
+.slip-status { font-size: 11px; font-weight: 800; padding: 4px 12px; border-radius: 999px; }
+.slip-status.small { font-size: 10px; padding: 3px 9px; }
+.slip-status.paid { background: #dcf5d6; color: #14703a; }
+.slip-status.pending { background: #fdebc8; color: #a15c07; }
+
+/* Slip sheet */
+.slip-backdrop {
+  position: fixed; inset: 0; z-index: 1300; overflow-y: auto;
+  background: rgba(8,26,45,.55); backdrop-filter: blur(3px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: max(24px, env(safe-area-inset-top)) 14px 24px;
+}
+.slip-sheet { width: 100%; max-width: 440px; }
+.slip-paper {
+  background: #fff; border-radius: 22px; padding: 24px 22px;
+  box-shadow: 0 24px 60px rgba(8,26,45,.35);
+}
+.slip-head { display: flex; justify-content: space-between; align-items: flex-start; }
+.slip-brand { font-family: 'Poppins', 'Inter', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -.04em; color: var(--bovest-navy); }
+.slip-tag { font-size: 11px; color: #7a9a88; margin-top: 1px; }
+.slip-title { margin-top: 18px; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #1f8a4c; }
+.slip-no { font-size: 13px; color: #5a7080; margin-top: 2px; }
+.slip-amount {
+  margin-top: 16px; padding: 16px; border-radius: 16px;
+  background: linear-gradient(135deg, #eaf7e7, #dff2db); text-align: center;
+}
+.slip-amount span { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #5a7d6d; }
+.slip-amount strong { display: block; margin-top: 4px; font-size: 30px; font-weight: 800; color: #14703a; font-family: 'Poppins', 'Inter', sans-serif; letter-spacing: -.03em; }
+.slip-party { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; padding-bottom: 14px; border-bottom: 1px dashed #d4e4d0; }
+.slip-party span { display: block; font-size: 11px; color: #8ba899; text-transform: uppercase; letter-spacing: .06em; }
+.slip-party b { display: block; margin-top: 3px; font-size: 14px; color: var(--bovest-navy); }
+.slip-rows { margin-top: 6px; }
+.slip-row { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid #f0f5ef; font-size: 13px; }
+.slip-row span { color: #7a8fa0; }
+.slip-row b { color: var(--bovest-navy); text-align: right; word-break: break-word; }
+.slip-notes { margin-top: 14px; padding: 12px; border-radius: 12px; background: #f5faf3; font-size: 12px; color: #5a7080; line-height: 1.5; }
+.slip-foot { margin-top: 16px; font-size: 10.5px; color: #9aaba5; text-align: center; line-height: 1.5; }
+
+.slip-actions { display: flex; gap: 10px; margin-top: 14px; }
+.slip-btn {
+  flex: 1; border: none; border-radius: 14px; padding: 14px; font-size: 14px; font-weight: 800; color: #fff;
+  background: var(--bv-gradient-brand, linear-gradient(135deg, #1f8a4c, #4fb857));
+  box-shadow: var(--shadow-green, 0 8px 20px rgba(31,157,87,.3));
+}
+.slip-btn.ghost { background: rgba(255,255,255,.95); color: var(--bovest-navy); box-shadow: none; }
+
+/* Print: only the slip */
+@media print {
+  body * { visibility: hidden !important; }
+  .slip-paper, .slip-paper * { visibility: visible !important; }
+  .slip-backdrop { position: static !important; background: none !important; backdrop-filter: none !important; padding: 0 !important; overflow: visible !important; }
+  .slip-paper { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; }
+  .no-print { display: none !important; }
+}

@@ -41,11 +41,6 @@ export const mockSchemes = [
     id: "scheme-a",
     name: "Scheme A: Milk-Based Investment",
     description: "Invest in a cow. Daily milk profits shared. 5-year lock-in with animal value return."
-  },
-  {
-    id: "scheme-b",
-    name: "Scheme B: Amount-Based Investment",
-    description: "Lump sum investment. Variable monthly payouts. 3-year lock-in with full value return."
   }
 ];
 

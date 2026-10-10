@@ -1,0 +1,68 @@
+/* Investment agreement screen */
+
+.agr-page { min-height: 100dvh; background: var(--bovest-cream); padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+
+.agr-hero {
+  background: var(--bv-gradient-deep, linear-gradient(145deg, #081a2d, #0f3150));
+  color: #fff;
+  padding: max(52px, env(safe-area-inset-top)) 20px 64px;
+  border-radius: 0 0 28px 28px;
+}
+.agr-back {
+  width: 40px; height: 40px; border: none; border-radius: 12px;
+  background: rgba(255,255,255,.14); color: #fff;
+  display: grid; place-items: center; margin-bottom: 18px;
+}
+.agr-hero h2 { font-family: 'Poppins', 'Inter', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.agr-hero p { font-size: 13px; color: rgba(255,255,255,.65); margin-top: 3px; }
+
+.agr-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+.agr-facts div {
+  background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px; padding: 12px 8px; text-align: center;
+}
+.agr-facts b { display: block; font-size: 17px; font-weight: 800; color: #2ee59d; }
+.agr-facts span { display: block; margin-top: 3px; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.6); }
+
+.agr-body { margin: -34px 16px 0; display: flex; flex-direction: column; gap: 10px; }
+
+.agr-item {
+  background: #fff; border: 1px solid var(--bovest-border); border-radius: 18px;
+  box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.agr-item summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 12px; padding: 15px 16px;
+}
+.agr-item summary::-webkit-details-marker { display: none; }
+.agr-num {
+  width: 28px; height: 28px; border-radius: 9px; flex-shrink: 0;
+  display: grid; place-items: center;
+  font-size: 12px; font-weight: 800; color: #17703d;
+  background: linear-gradient(135deg, #e3f6de, #c4eac0);
+}
+.agr-title { flex: 1; font-size: 15px; font-weight: 800; color: var(--bovest-navy); }
+.agr-chevron { color: #8ba899; transition: transform .25s ease; flex-shrink: 0; }
+.agr-item[open] .agr-chevron { transform: rotate(180deg); }
+.agr-item[open] summary { border-bottom: 1px solid #eef4ec; }
+
+.agr-content { padding: 14px 16px 16px; }
+.agr-content p { font-size: 13.5px; line-height: 1.65; color: #4a6272; }
+.agr-content p + p { margin-top: 10px; }
+
+.agr-table { margin: 12px 0; border: 1px solid #e3eee0; border-radius: 14px; overflow: hidden; }
+.agr-table-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 11px 14px; font-size: 13px; color: #4a6272;
+}
+.agr-table-row + .agr-table-row { border-top: 1px solid #eef4ec; }
+.agr-table-row:nth-child(odd) { background: #f8fcf6; }
+.agr-table-row small { display: block; font-size: 11px; color: #8ba899; margin-top: 2px; }
+.agr-table-row b { color: #14914a; white-space: nowrap; }
+
+.agr-pdf {
+  margin-top: 6px; width: 100%; padding: 14px; border-radius: 14px;
+  border: 1.5px solid var(--bovest-border); background: #fff;
+  font-size: 14px; font-weight: 800; color: var(--bovest-green-dark);
+}
+.agr-pdf:hover { background: #f1faee; border-color: #bfe0b8; }
