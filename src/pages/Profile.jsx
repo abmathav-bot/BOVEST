@@ -23,8 +23,46 @@ const Profile = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isAvatarFullscreen, setIsAvatarFullscreen] = useState(false);
   const [bankDetails, setBankDetails] = useState(null);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
   const kycVerified = user?.kyc_status === 'Verified';
   const kycInProcess = user?.kyc_status === 'Pending';
+
+  // Detect if already running as installed PWA (standalone mode)
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true ||
+    document.referrer.includes('android-app://');
+
+  useEffect(() => {
+    // If already in standalone/PWA mode, mark as installed
+    if (isStandalone) { setIsInstalled(true); return; }
+
+    // Capture the browser's install prompt
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+
+    // Listen for successful installation
+    window.addEventListener('appinstalled', () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    });
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    }
+  };
 
   useEffect(() => {
     api.user.getBankDetails().then(({ bank_details }) => setBankDetails(bank_details)).catch(() => setBankDetails(null));
@@ -146,6 +184,48 @@ const Profile = () => {
           );
         })}
       </div>
+
+      {/* Install App Button — only shown in browser, hidden in standalone PWA */}
+      {!isInstalled && !isStandalone && (
+        <div style={{ marginBottom: '12px' }}>
+          <button
+            type="button"
+            onClick={handleInstall}
+            disabled={!installPrompt}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              padding: '16px',
+              borderRadius: '16px',
+              border: '1.5px solid rgba(40,123,69,0.3)',
+              background: 'linear-gradient(135deg, #287b45 0%, #58ae3f 100%)',
+              cursor: installPrompt ? 'pointer' : 'not-allowed',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: '15px',
+              boxShadow: '0 4px 16px rgba(40,123,69,0.3)',
+              opacity: installPrompt ? 1 : 0.6,
+              transition: 'opacity 0.2s',
+            }}
+          >
+            {/* Download / Install icon */}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            {installPrompt ? 'Install Bovest App' : 'Open in Browser to Install'}
+          </button>
+          {!installPrompt && (
+            <p style={{ textAlign: 'center', fontSize: '11px', color: '#9aabb5', marginTop: '6px' }}>
+              Open this page in Chrome or Edge to install
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Logout */}
       <button
